@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -33,9 +34,17 @@ func connect(brokerURI string, clientId string) mqtt.Client {
 }
 
 func main() {
+	wg := sync.WaitGroup{}
 
-	client := connect("tcp://localhost:1883", "my-client-id")
+	wg.Add(1)
 
-	client.Publish("topic/a", 0, true, "msga")
+	client := connect("tcp://localhost:1883", "idTest")
 
+	client.Subscribe("/a/b/c", 0, func(client mqtt.Client, msg mqtt.Message) {
+		fmt.Printf(msg.Topic() + " " + string(msg.Payload()))
+	})
+
+	client.Publish("/a/b/c", 0, false, "Hello World").Wait()
+
+	wg.Wait()
 }
