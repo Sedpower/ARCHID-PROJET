@@ -36,10 +36,6 @@ func main() {
 
 	client := connect("tcp://localhost:1883", "my-client-id")
 
-	// client.Subscribe("topic/a", 0, func(client mqtt.Client, message mqtt.Message) {
-	// 	fmt.Println("recu : %s", message)
-	// })
-
 	client.Publish("topic/a", 0, true, "msga")
 
 }
