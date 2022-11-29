@@ -1,4 +1,4 @@
-package main
+package sub
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func createClientOptions(brokerURI string, clientId string) *mqtt.ClientOptions 
 	return opts
 }
 
-func connect(brokerURI string, clientId string) mqtt.Client {
+func Connect(brokerURI string, clientId string) mqtt.Client {
 	fmt.Println("Trying to connect (" + brokerURI + ", " + clientId + ")...")
 	opts := createClientOptions(brokerURI, clientId)
 	client := mqtt.NewClient(opts)

@@ -1,4 +1,4 @@
-module aeroport/test
+module aeroport
 
 go 1.19
 

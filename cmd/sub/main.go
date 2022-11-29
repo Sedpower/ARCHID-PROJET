@@ -1,4 +1,4 @@
-package main
+package sub
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ func main() {
 
 	topic := "topic/a"
 
-	client := connect("tcp://localhost:1883", "my-client-id") // qualité service 2.
+	client := Connect("tcp://localhost:1883", "my-client-id") // qualité service 2.
 
 	var wg sync.WaitGroup
 	wg.Add(2)
