@@ -63,4 +63,4 @@ project-root/
 > }
 > ```
 
-swagger https://github.com/swaggo/http-swagger
+https://www.soberkoder.com/swagger-go-api-swaggo/
