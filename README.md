@@ -40,12 +40,12 @@ GET /localhost:port/api/NTE/TEMP/18-11-2022-18:18:10/18-11-2022-18:18:20
     "NTE": {
         "TEMP": [
             {
-                "TEMP": 26,
+                "VALUE": 26,
                 "DATE": "18-11-2022-18:18:10"
             },
             {
                 "TEMP": 26,
-                "DATE": "18-11-2022-18:18:20"
+                "VALUE": "18-11-2022-18:18:20"
             }
         ]
     }
@@ -62,3 +62,5 @@ GET /localhost:port/api/NTE/TEMP/
     }
 }
 ```
+
+swagger https://github.com/swaggo/http-swagger
