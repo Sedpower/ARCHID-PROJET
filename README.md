@@ -16,51 +16,51 @@ project-root/
 ```
 
 
-Aeroport : 
+## Aéroports :
 
-NTE
+- NTE
 
-BDD redis :
+## BDD redis :
 
-/AERO/DATEJOUR/MESURE => valeur;datejour+heure
-/AERO/DATEJOURHEURE => datejour+heure (de la premiere mesure)
+- `/AERO/DATEJOUR/MESURE => valeur;datejour+heure`
+- `/AERO/DATEJOURHEURE => datejour+heure (de la premiere mesure)`
 
-MESURE:
-TEMP
-PRESSURE
-WIND
+## MESURE:
+- TEMP
+- PRESSURE
+- WIND
 
-Requête api rest :
+## Requêtes API REST :
 
-mesure d'un type entre deux date(+heure) pour un aeroport
+> Mesure d'un type entre deux date(+heure) pour un aeroport
+>
+> `GET /localhost:port/api/NTE/TEMP/18-11-2022-18:18:10/18-11-2022-18:18:20`
+> ```json
+> {
+>     "NTE": {
+>         "TEMP": [
+>             {
+>                 "TEMP": 26,
+>                 "DATE": "18-11-2022-18:18:10"
+>             },
+>             {
+>                 "TEMP": 26,
+>                 "DATE": "18-11-2022-18:18:20"
+>             }
+>         ]
+>     }
+> }
+> ```
 
-GET /localhost:port/api/NTE/TEMP/18-11-2022-18:18:10/18-11-2022-18:18:20
-```
-{
-    "NTE": {
-        "TEMP": [
-            {
-                "VALUE": 26,
-                "DATE": "18-11-2022-18:18:10"
-            },
-            {
-                "TEMP": 26,
-                "VALUE": "18-11-2022-18:18:20"
-            }
-        ]
-    }
-}
-```
-
-moyenne mesure pour les MESURE pour un aeroport
-
-GET /localhost:port/api/NTE/TEMP/
-```
-{
-    "NTE": {
-        "TEMP": 19
-    }
-}
-```
+> Moyenne mesure pour les MESURE pour un aeroport
+>
+> `GET /localhost:port/api/NTE/TEMP/`
+> ```json
+> {
+>     "NTE": {
+>         "TEMP": 19
+>     }
+> }
+> ```
 
 swagger https://github.com/swaggo/http-swagger
