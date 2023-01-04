@@ -1,0 +1,40 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: soberkoder@swagger.io
+    name: API Support
+  description: Cette API vous permet d'effectuer deux get
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Aeroport API
+  version: "1.0"
+paths:
+  /api/aeroports:
+    get:
+      description: retourne au format JSON tous les aeroports
+      responses:
+        "200":
+          description: OK
+      summary: récupérer tous les aeroports
+  /api/mesure/{aeroport}/{date}:
+    get:
+      description: get basic
+      parameters:
+      - description: aeroport Name
+        in: path
+        name: aeroport
+        required: true
+        type: string
+      - description: Date AAAA-MM-JJ
+        in: path
+        name: date
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+      summary: retourne la moyenne des mesures sur une journée d'un aeroport
+swagger: "2.0"

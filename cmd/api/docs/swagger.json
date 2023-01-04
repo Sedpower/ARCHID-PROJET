@@ -1,0 +1,59 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Cette API vous permet d'effectuer deux get",
+        "title": "Aeroport API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "soberkoder@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/aeroports": {
+            "get": {
+                "description": "retourne au format JSON tous les aeroports",
+                "summary": "récupérer tous les aeroports",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/mesure/{aeroport}/{date}": {
+            "get": {
+                "description": "get basic",
+                "summary": "retourne la moyenne des mesures sur une journée d'un aeroport",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "aeroport Name",
+                        "name": "aeroport",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date AAAA-MM-JJ",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    }
+}
