@@ -1,0 +1,6 @@
+brokerUrl: "tcp://localhost"
+brokerPort: "1883"
+publisher:
+  clientId: "pub"
+  QoS: 0
+
