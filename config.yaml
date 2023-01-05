@@ -3,4 +3,6 @@ brokerPort: "1883"
 publisher:
   clientId: "pub"
   QoS: 0
+  apiUrl: "http://api.weatherapi.com/v1/current.json?key=3f4678c9d6c04eac8a4222114222012&q=iata:%s"
+  listOfIATA: ["NTE", "MAD", "CDG"]
 

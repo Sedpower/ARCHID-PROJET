@@ -10,8 +10,10 @@ type Config struct {
 	BrokerUrl  string `yaml:"brokerUrl"`
 	BrokerPort string `yaml:"brokerPort"`
 	Publisher  struct {
-		ClientId string `yaml:"clientId"`
-		QoS      int    `yaml:"QoS"`
+		ClientId   string   `yaml:"clientId"`
+		QoS        int      `yaml:"QoS"`
+		ApiUrl     string   `yaml:"apiUrl"`
+		ListOfIATA []string `yaml:"listOfIATA"`
 	} `yaml:"publisher"`
 }
 

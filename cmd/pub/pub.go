@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type valueName struct {
+type ValueName struct {
 	routeValueName string
 	apiValueName   string
 	jsonValueName  string
@@ -22,17 +22,15 @@ func main() {
 	client := Connect(config.BrokerUrl+":"+config.BrokerPort, config.Publisher.ClientId)
 
 	for true {
-		apiUrl := "http://api.weatherapi.com/v1/current.json?key=3f4678c9d6c04eac8a4222114222012&q=iata:%s"
 
-		arrayOfIATA := [3]string{"NTE", "MAD", "CDG"}
-		arrayOfValueName := [3]valueName{
+		arrayOfValueName := [3]ValueName{
 			{"temperature", "temp_c", "Temperature"},
 			{"pressure", "pressure_mb", "Atmospheric pressure"},
 			{"wind_speed", "wind_kph", "Wind speed"},
 		}
 
-		for id, iata := range arrayOfIATA {
-			reqUrl := fmt.Sprintf(apiUrl, iata)
+		for id, iata := range config.Publisher.ListOfIATA {
+			reqUrl := fmt.Sprintf(config.Publisher.ApiUrl, iata)
 			req, _ := http.Get(reqUrl)
 			body, _ := ioutil.ReadAll(req.Body)
 			var result map[string]interface{}
@@ -46,12 +44,12 @@ func main() {
 				pubJson, _ := json.Marshal(map[string]interface{}{
 					"natureDonnee": arrayOfValueName[i].jsonValueName,
 					"iata":         iata,
-					"idCapteur":    id + i*len(arrayOfIATA),
+					"idCapteur":    id + i*len(config.Publisher.ListOfIATA),
 					"date":         datetimeNow, //AAAA-MM-JJ-HH-MM-SS
 					"valeur":       value,
 				})
 
-				client.Publish("/airports/NTE/"+valueName.routeValueName, byte(config.Publisher.QoS), false, pubJson)
+				client.Publish("/airports/"+iata+"/"+valueName.routeValueName, byte(config.Publisher.QoS), false, pubJson)
 			}
 		}
 		time.Sleep(10 * time.Second)
