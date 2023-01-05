@@ -49,7 +49,7 @@ func main() {
 					"valeur":       value,
 				})
 
-				client.Publish("/airports/"+iata+"/"+valueName.routeValueName, byte(config.Publisher.QoS), false, pubJson)
+				client.Publish(config.BrokerBaseTopicPath+"/"+iata+"/"+valueName.routeValueName, byte(config.Publisher.QoS), false, pubJson)
 			}
 		}
 		time.Sleep(10 * time.Second)

@@ -7,14 +7,23 @@ import (
 )
 
 type Config struct {
-	BrokerUrl  string `yaml:"brokerUrl"`
-	BrokerPort string `yaml:"brokerPort"`
-	Publisher  struct {
+	BrokerUrl           string `yaml:"brokerUrl"`
+	BrokerPort          string `yaml:"brokerPort"`
+	BrokerBaseTopicPath string `yaml:"brokerBaseTopicPath"`
+	Publisher           struct {
 		ClientId   string   `yaml:"clientId"`
 		QoS        int      `yaml:"QoS"`
 		ApiUrl     string   `yaml:"apiUrl"`
 		ListOfIATA []string `yaml:"listOfIATA"`
 	} `yaml:"publisher"`
+	Subscriber struct {
+		ClientId      string `yaml:"clientId"`
+		QoS           int    `yaml:"QoS"`
+		RedisHost     string `yaml:"redisHost"`
+		RedisPort     string `yaml:"redisPort"`
+		RedisProtocol string `yaml:"redisProtocol"`
+		Topic         string `yaml:"topic"`
+	} `yaml:"subscriber"`
 }
 
 func processError(err error) {
