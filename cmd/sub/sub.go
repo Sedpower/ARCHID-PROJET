@@ -2,28 +2,29 @@ package main
 
 import (
 	. "aeroport/internal"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gomodule/redigo/redis"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 )
 
 type Data1 struct {
-	NatureDonnee string `json:"natureDonnee"`
-	Iata         string `json:"iata"`
-	IdCapteur    string `json:"idCapteur"`
-	Date         string `json:"date"`
-	Valeur       string `json:"valeur"`
+	NatureDonnee string  `json:"natureDonnee"`
+	Iata         string  `json:"iata"`
+	IdCapteur    int     `json:"idCapteur"`
+	Date         string  `json:"date"`
+	Valeur       float64 `json:"valeur"`
 }
 
 func main() {
 	topic := "/airports/#"
+	config := LoadConfig()
 
-	client := Connect("tcp://localhost:1883", "subscriber")
+	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub")
 
 	conn, err := redis.Dial("tcp", "localhost:6379")
 
@@ -38,17 +39,18 @@ func main() {
 	go func() {
 		client.Subscribe(topic, 0, func(client mqtt.Client, message mqtt.Message) {
 			if message != nil {
-				payloadBytes, _ := base64.StdEncoding.DecodeString(string(message.Payload()))
-				fmt.Printf("%s", payloadBytes)
+
+				//fmt.Printf("%s", message.Payload())
 				var donnees Data1
-				err := json.Unmarshal(payloadBytes, &donnees)
+				err := json.Unmarshal(message.Payload(), &donnees)
 
 				if err != nil {
 					fmt.Println(err)
+					fmt.Println("erreur")
 					return
 				}
 
-				fmt.Println(json.Unmarshal(payloadBytes, &donnees))
+				fmt.Println(donnees)
 
 				date := strings.Split(donnees.Date, "-")
 				annee := date[0]
@@ -59,7 +61,8 @@ func main() {
 				seconde := date[5]
 				route := "/" + donnees.Iata + "/" + donnees.NatureDonnee + "/" + annee + "/" + mois + "/" + jour
 				hour := "/" + heure + "/" + minute + "/" + seconde
-				valeurEnvoyee := donnees.IdCapteur + " " + donnees.Valeur
+				valeurEnvoyee := strconv.Itoa(donnees.IdCapteur) + " " + fmt.Sprintf("%f", donnees.Valeur)
+
 				r, err := conn.Do("HSET", route, hour, valeurEnvoyee)
 				if err != nil {
 					log.Fatal(err)
@@ -67,10 +70,10 @@ func main() {
 				fmt.Println(r)
 			}
 		})
+		conn.Close()
 
 	}()
 
-	conn.Close()
 	//Attendre que la valeur du wait soit à 0 wg.Done()
 	wg.Wait()
 }
