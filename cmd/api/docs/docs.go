@@ -35,7 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/allMesure/{iata}/{annee}/{mois}/{jour}": {
+        "/api/allMesure/{iata}/{date}": {
             "get": {
                 "description": "get basic",
                 "summary": "retourne la moyenne des mesures sur une journée d'un aeroport",
@@ -49,29 +49,21 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Date AAAA",
-                        "name": "annee",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Date MM",
-                        "name": "mois",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Date JJ",
-                        "name": "jour",
+                        "description": "Start (format: YYYY-MM-DD)",
+                        "name": "date",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.Moyenne_Data_Day"
+                            }
+                        }
                     }
                 }
             }
@@ -175,6 +167,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/main.DayMeasurement"
                     }
+                }
+            }
+        },
+        "main.Moyenne_Data_Day": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Pressure": {
+                    "type": "string"
+                },
+                "Temperature": {
+                    "type": "string"
+                },
+                "Wind_speed": {
+                    "type": "string"
                 }
             }
         }

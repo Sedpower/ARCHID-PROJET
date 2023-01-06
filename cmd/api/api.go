@@ -40,7 +40,7 @@ func main() {
 
 	router.HandleFunc("/api/mesures/{iata}/{start}/{end}", GetMeasurements).Methods("GET")
 
-	router.HandleFunc("/api/allMesure/{iata}/{annee}/{mois}/{jour}", AllMesure).Methods("GET")
+	router.HandleFunc("/api/allMesure/{iata}/{date}", AllMesure).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -66,8 +66,6 @@ type Measurement struct {
 	Value     float64 `json:"Value"`
 }
 
-type Measurements []Measurement
-
 // GetMeasurements @Summary Liste les mesures entre start et end
 // @Produce json
 // @Param iata path string true "aeroport Name"
@@ -90,61 +88,27 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer conn.Close()
 
 	var Temperature []DayMeasurement
 	var Pressure []DayMeasurement
 	var WindSpeed []DayMeasurement
 
-	layout = "/15/04/05"
+	startZero := start.Truncate(time.Hour * 24)
 
-	for t := start; t.Before(end); t = t.Add(time.Hour * 24) {
-		// Format the key for the current time
-		key := fmt.Sprintf("/%s/temperature/%d/%02d/%02d", iata, t.Year(), t.Month(), t.Day())
+	for t := startZero; t.Before(end); t = t.Add(time.Hour * 24) {
 
-		HmeasurementTab := []HourMeasurement{}
+		mesures := []string{"temperature", "pressure", "wind_speed"}
 
-		fields, err := redis.Strings(conn.Do("HGETALL", key))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		DayMesure := [3]DayMeasurement{}
+
+		for i, mesure := range mesures {
+			key := fmt.Sprintf("/%s/%s/%d/%02d/%02d", iata, mesure, t.Year(), t.Month(), t.Day())
+			DayMesure[i] = DayMeasurement{Jour: fmt.Sprintf("%02d/%02d/%d", t.Day(), t.Month(), t.Year()), HeureMesure: RecuperationDonneeJour(key, start, end, t, conn)}
 		}
 
-		for i := 0; i < len(fields); i += 2 {
-
-			dateOk := true
-			heureMesure, _ := time.Parse(layout, strings.Fields(fields[i])[0])
-
-			//si date == start heure > start
-			if t.Date() == start.Date() && dateOk {
-				fmt.Println("même date START attention à l'heure")
-				if heureMesure.Hour() < start.Hour() {
-					dateOk = false
-				}
-			}
-			//si date == end heure < end
-			if t.Date() == end.Date() && dateOk {
-				fmt.Println("même date END attention à l'heure")
-				if heureMesure.Hour() > start.Hour() {
-					dateOk = false
-				}
-			}
-			//si ok
-			if dateOk {
-				fmt.Println("date ok")
-
-				heure := fmt.Sprintf("%02d:%02d:%02d", heureMesure.Hour(), heureMesure.Minute(), heureMesure.Second())
-				value, _ := strconv.ParseFloat(strings.Fields(fields[i+1])[1], 64)
-				iDCapteur := strings.Fields(fields[i+1])[0]
-
-				Hmeasurement := HourMeasurement{Heure: heure, Mesure: Measurement{IDCapteur: iDCapteur, Value: value}}
-				HmeasurementTab = append(HmeasurementTab, Hmeasurement)
-			}
-		}
-		TempDayMesure := DayMeasurement{Jour: fmt.Sprintf("%02d/%02d/%d", t.Day(), t.Month(), t.Year()), HeureMesure: HmeasurementTab}
-		Temperature = append(Temperature, TempDayMesure)
-		//Pressure = append(Pressure)
-		//WindSpeed = append(WindSpeed)
+		Temperature = append(Temperature, DayMesure[0])
+		Pressure = append(Pressure, DayMesure[1])
+		WindSpeed = append(WindSpeed, DayMesure[2])
 
 	}
 
@@ -153,9 +117,45 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result_json)
 }
 
-// liste mesure TYPE entre deux bornes DATE+HEURE / DATE+HEURE
+func RecuperationDonneeJour(key string, start time.Time, end time.Time, t time.Time, conn redis.Conn) []HourMeasurement {
 
-// mesure moyenne des trois types pour une DATE d'un AEROPORT
+	layout := "/15/04/05"
+	defer conn.Close()
+	HmeasurementTab := []HourMeasurement{}
+
+	fields, _ := redis.Strings(conn.Do("HGETALL", key))
+
+	for i := 0; i < len(fields); i += 2 {
+
+		dateOk := true
+		heureMesure, _ := time.Parse(layout, strings.Fields(fields[i])[0])
+
+		//si date == start heure > start
+		if t.Truncate(time.Hour*24) == start.Truncate(time.Hour*24) && dateOk {
+			if heureMesure.Hour() < start.Hour() {
+				dateOk = false
+			}
+		}
+		//si date == end heure < end
+		if t.Truncate(time.Hour*24) == end.Truncate(time.Hour*24) && dateOk {
+			if heureMesure.Hour() > start.Hour() {
+				dateOk = false
+			}
+		}
+		//si ok
+		if dateOk {
+			heure := fmt.Sprintf("%02d:%02d:%02d", heureMesure.Hour(), heureMesure.Minute(), heureMesure.Second())
+			value, _ := strconv.ParseFloat(strings.Fields(fields[i+1])[1], 64)
+			iDCapteur := strings.Fields(fields[i+1])[0]
+
+			Hmeasurement := HourMeasurement{Heure: heure, Mesure: Measurement{IDCapteur: iDCapteur, Value: value}}
+			HmeasurementTab = append(HmeasurementTab, Hmeasurement)
+		}
+	}
+
+	return HmeasurementTab
+
+}
 
 type Moyenne_Data_Day struct {
 	Name        string `json:"Name"`
@@ -167,24 +167,22 @@ type Moyenne_Data_Day struct {
 // AllMesure godoc
 // @Summary retourne la moyenne des mesures sur une journée d'un aeroport
 // @Param iata path string true "aeroport Name"
-// @Param annee path string true "Date AAAA"
-// @Param mois path string true "Date MM"
-// @Param jour path string true "Date JJ"
+// @Param date path string true "Start (format: YYYY-MM-DD)"
 // @Description get basic
-// @Success 200
-// @Router /api/allMesure/{iata}/{annee}/{mois}/{jour} [get]
+// @Success 200 {array} Moyenne_Data_Day
+// @Router /api/allMesure/{iata}/{date} [get]
 func AllMesure(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	iata := vars["iata"]
-	annee := vars["annee"]
-	mois := vars["mois"]
-	jour := vars["jour"]
+
+	layout := "2006-01-02"
+	date, _ := time.Parse(layout, vars["date"])
 
 	// générer routes
-	keyTemperature := fmt.Sprintf("/%s/temperature/%s/%s/%s", iata, annee, mois, jour)
-	keyPressure := fmt.Sprintf("/%s/pressure/%s/%s/%s", iata, annee, mois, jour)
-	keyWindSpeed := fmt.Sprintf("/%s/wind_speed/%s/%s/%s", iata, annee, mois, jour)
+	keyTemperature := fmt.Sprintf("/%s/temperature/%d/%02d/%02d", iata, date.Year(), date.Month(), date.Day())
+	keyPressure := fmt.Sprintf("/%s/pressure/%d/%02d/%02d", iata, date.Year(), date.Month(), date.Day())
+	keyWindSpeed := fmt.Sprintf("/%s/wind_speed/%d/%02d/%02d", iata, date.Year(), date.Month(), date.Day())
 
 	conn := pool.Get()
 	defer conn.Close()
@@ -219,8 +217,9 @@ func Aeroports(w http.ResponseWriter, r *http.Request) {
 	conn := pool.Get()
 	defer conn.Close()
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/00/00/00", ("55 0"))
-	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/23/55/00", ("55 4.5"))
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/00/10/00", ("55 8"))
+	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/10/00/00", ("55 9"))
+	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/23/55/00", ("55 4.5"))
 	ALL_Airport := []string{"NTE", "MAD", "CDG"}
 
 	airports := []Airport{}

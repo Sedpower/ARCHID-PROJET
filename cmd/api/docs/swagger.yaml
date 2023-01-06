@@ -38,6 +38,17 @@ definitions:
           $ref: '#/definitions/main.DayMeasurement'
         type: array
     type: object
+  main.Moyenne_Data_Day:
+    properties:
+      Name:
+        type: string
+      Pressure:
+        type: string
+      Temperature:
+        type: string
+      Wind_speed:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -58,7 +69,7 @@ paths:
         "200":
           description: OK
       summary: récupérer tous les aeroports
-  /api/allMesure/{iata}/{annee}/{mois}/{jour}:
+  /api/allMesure/{iata}/{date}:
     get:
       description: get basic
       parameters:
@@ -67,24 +78,18 @@ paths:
         name: iata
         required: true
         type: string
-      - description: Date AAAA
+      - description: 'Start (format: YYYY-MM-DD)'
         in: path
-        name: annee
-        required: true
-        type: string
-      - description: Date MM
-        in: path
-        name: mois
-        required: true
-        type: string
-      - description: Date JJ
-        in: path
-        name: jour
+        name: date
         required: true
         type: string
       responses:
         "200":
           description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Moyenne_Data_Day'
+            type: array
       summary: retourne la moyenne des mesures sur une journée d'un aeroport
   /api/mesures/{iata}/{start}/{end}:
     get:
