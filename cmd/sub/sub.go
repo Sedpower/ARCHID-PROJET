@@ -21,12 +21,13 @@ type Data1 struct {
 }
 
 func main() {
-	topic := "/airports/#"
 	config := LoadConfig()
 
-	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub")
+	topic := config.BrokerBaseTopicPath + config.Subscriber.Topic
 
-	conn, err := redis.Dial("tcp", "localhost:6379")
+	client := Connect(config.BrokerUrl+":"+config.BrokerPort, config.Subscriber.ClientId)
+
+	conn, err := redis.Dial(config.Subscriber.RedisProtocol, config.Subscriber.RedisHost+":"+config.Subscriber.RedisPort)
 
 	if err != nil {
 		log.Fatal(err)

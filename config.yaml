@@ -1,6 +1,16 @@
 brokerUrl: "tcp://localhost"
 brokerPort: "1883"
+brokerBaseTopicPath: "/airports"
 publisher:
   clientId: "pub"
   QoS: 0
+  apiUrl: "http://api.weatherapi.com/v1/current.json?key=3f4678c9d6c04eac8a4222114222012&q=iata:%s"
+  listOfIATA: ["NTE", "MAD", "CDG"]
 
+subscriber:
+  clientId: "sub"
+  QoS: 0
+  redisHost: "localhost"
+  redisPort: "6379"
+  redisProtocol: "tcp"
+  topic: "/#"
