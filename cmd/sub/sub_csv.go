@@ -5,33 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/gomodule/redigo/redis"
-	"log"
-	"strconv"
+	"os"
 	"strings"
 	"sync"
 )
 
-type Data1 struct {
-	NatureDonnee string  `json:"natureDonnee"`
-	Iata         string  `json:"iata"`
-	IdCapteur    int     `json:"idCapteur"`
-	Date         string  `json:"date"`
-	Valeur       float64 `json:"valeur"`
-}
-
 func main() {
+	topic := "/airports/#"
 	config := LoadConfig()
 
-	topic := config.BrokerBaseTopicPath + config.Subscriber.Topic
+	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub")
 
-	client := Connect(config.BrokerUrl+":"+config.BrokerPort, config.Subscriber.ClientId)
-
-	conn, err := redis.Dial(config.Subscriber.RedisProtocol, config.Subscriber.RedisHost+":"+config.Subscriber.RedisPort)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	// nombre de fonctions asynchrones (exe en parralelle)
 	// waitgroup add, ajout. Stocke 2, deux coroutines en cours.
 	//Ici une seule car seulmenet le subscribe
@@ -60,19 +44,31 @@ func main() {
 				heure := date[3]
 				minute := date[4]
 				seconde := date[5]
-				route := "/" + donnees.Iata + "/" + donnees.NatureDonnee + "/" + annee + "/" + mois + "/" + jour
-				hour := "/" + heure + "/" + minute + "/" + seconde
-				valeurEnvoyee := strconv.Itoa(donnees.IdCapteur) + " " + fmt.Sprintf("%f", donnees.Valeur)
 
-				r, err := conn.Do("HSET", route, hour, valeurEnvoyee)
-				if err != nil {
-					log.Fatal(err)
+				var nature string
+
+				switch {
+				case donnees.NatureDonnee == "temperature":
+					nature = "Temp"
+				case donnees.NatureDonnee == "pressure":
+					nature = "Pres"
+				case donnees.NatureDonnee == "wind_speed":
+					nature = "Wind"
 				}
-				fmt.Println(r)
+				nomFichier := donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
+
+				if _, err := os.Stat(nomFichier); os.IsNotExist(err) {
+					file, err := os.Create(nomFichier)
+					if err != nil {
+						panic(err)
+					}
+					defer file.Close()
+				}
+
 			}
 		})
+
 	}()
 	//Attendre que la valeur du wait soit à 0 wg.Done()
 	wg.Wait()
-	conn.Close()
 }

@@ -29,5 +29,6 @@ func Connect(brokerURI string, clientId string) mqtt.Client {
 	if err := token.Error(); err != nil {
 		log.Fatal(err)
 	}
+	println("Connected!")
 	return client
 }
