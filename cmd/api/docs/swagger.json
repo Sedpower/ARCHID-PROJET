@@ -28,7 +28,7 @@
                 }
             }
         },
-        "/api/mesure/{aeroport}/{date}": {
+        "/api/allMesure/{iata}/{annee}/{mois}/{jour}": {
             "get": {
                 "description": "get basic",
                 "summary": "retourne la moyenne des mesures sur une journée d'un aeroport",
@@ -36,14 +36,28 @@
                     {
                         "type": "string",
                         "description": "aeroport Name",
-                        "name": "aeroport",
+                        "name": "iata",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Date AAAA-MM-JJ",
-                        "name": "date",
+                        "description": "Date AAAA",
+                        "name": "annee",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date MM",
+                        "name": "mois",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date JJ",
+                        "name": "jour",
                         "in": "path",
                         "required": true
                     }
@@ -51,6 +65,108 @@
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/mesures/{iata}/{start}/{end}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "aeroport Name",
+                        "name": "iata",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start (format: YYYY-MM-DD-HH)",
+                        "name": "start",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "End (format: YYYY-MM-DD-HH)",
+                        "name": "end",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/main.MeasuresResultat"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.DayMeasurement": {
+            "type": "object",
+            "properties": {
+                "HeureMesure": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.HourMeasurement"
+                    }
+                },
+                "jour": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.HourMeasurement": {
+            "type": "object",
+            "properties": {
+                "Mesure": {
+                    "$ref": "#/definitions/main.Measurement"
+                },
+                "heure": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Measurement": {
+            "type": "object",
+            "properties": {
+                "Value": {
+                    "type": "number"
+                },
+                "idCapteur": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.MeasuresResultat": {
+            "type": "object",
+            "properties": {
+                "pressions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.DayMeasurement"
+                    }
+                },
+                "temperatures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.DayMeasurement"
+                    }
+                },
+                "vitesseVents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/main.DayMeasurement"
                     }
                 }
             }
