@@ -6,7 +6,6 @@ import (
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/gomodule/redigo/redis"
-	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +19,8 @@ type Data1 struct {
 	Valeur       float64 `json:"valeur"`
 }
 
+var pool *redis.Pool
+
 func main() {
 	config := LoadConfig()
 
@@ -27,11 +28,12 @@ func main() {
 
 	client := Connect(config.BrokerUrl+":"+config.BrokerPort, config.Subscriber.ClientId)
 
-	conn, err := redis.Dial(config.Subscriber.RedisProtocol, config.Subscriber.RedisHost+":"+config.Subscriber.RedisPort)
-
-	if err != nil {
-		log.Fatal(err)
+	pool = &redis.Pool{
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", "localhost:6379")
+		},
 	}
+
 	// nombre de fonctions asynchrones (exe en parralelle)
 	// waitgroup add, ajout. Stocke 2, deux coroutines en cours.
 	//Ici une seule car seulmenet le subscribe
@@ -63,16 +65,13 @@ func main() {
 				route := "/" + donnees.Iata + "/" + donnees.NatureDonnee + "/" + annee + "/" + mois + "/" + jour
 				hour := "/" + heure + "/" + minute + "/" + seconde
 				valeurEnvoyee := strconv.Itoa(donnees.IdCapteur) + " " + fmt.Sprintf("%f", donnees.Valeur)
+				conn := pool.Get()
+				defer conn.Close()
+				_, _ = conn.Do("HSET", route, hour, valeurEnvoyee)
 
-				r, err := conn.Do("HSET", route, hour, valeurEnvoyee)
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println(r)
 			}
 		})
 	}()
 	//Attendre que la valeur du wait soit à 0 wg.Done()
 	wg.Wait()
-	conn.Close()
 }
