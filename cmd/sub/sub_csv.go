@@ -2,13 +2,24 @@ package main
 
 import (
 	. "aeroport/internal"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"log"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 )
+
+type Data struct {
+	NatureDonnee string  `json:"natureDonnee"`
+	Iata         string  `json:"iata"`
+	IdCapteur    int     `json:"idCapteur"`
+	Date         string  `json:"date"`
+	Valeur       float64 `json:"valeur"`
+}
 
 func main() {
 	topic := "/airports/#"
@@ -26,7 +37,7 @@ func main() {
 			if message != nil {
 
 				//fmt.Printf("%s", message.Payload())
-				var donnees Data1
+				var donnees Data
 				err := json.Unmarshal(message.Payload(), &donnees)
 
 				if err != nil {
@@ -41,21 +52,19 @@ func main() {
 				annee := date[0]
 				mois := date[1]
 				jour := date[2]
-				heure := date[3]
-				minute := date[4]
-				seconde := date[5]
-
+				fmt.Println(jour)
 				var nature string
 
 				switch {
-				case donnees.NatureDonnee == "temperature":
+				case donnees.NatureDonnee == "Temperature":
 					nature = "Temp"
-				case donnees.NatureDonnee == "pressure":
+				case donnees.NatureDonnee == "Atmospheric pressure":
 					nature = "Pres"
-				case donnees.NatureDonnee == "wind_speed":
+				case donnees.NatureDonnee == "Wind speed":
 					nature = "Wind"
 				}
-				nomFichier := donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
+				nomFichier := "./cmd/sub/Donnees/" + donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
+				fmt.Println(nomFichier)
 
 				if _, err := os.Stat(nomFichier); os.IsNotExist(err) {
 					file, err := os.Create(nomFichier)
@@ -63,7 +72,29 @@ func main() {
 						panic(err)
 					}
 					defer file.Close()
+					csvwriter := csv.NewWriter(file)
+					var colonne = []string{"Nature Donnée", "IATA", "iDCapteur", "Date", "Valeur"}
+					if err := csvwriter.Write(colonne); err != nil {
+						log.Fatalln("error writing record to file", err)
+					}
+
 				}
+				file, err := os.OpenFile(nomFichier, os.O_WRONLY|os.O_APPEND, 0644)
+				if err != nil {
+					fmt.Println(err)
+				}
+				defer file.Close()
+
+				writer := csv.NewWriter(file)
+				donneesEnvoyees := []string{donnees.NatureDonnee, donnees.Iata, strconv.Itoa(donnees.IdCapteur), donnees.Date, fmt.Sprintf("%f", donnees.Valeur)}
+
+				err = writer.Write(donneesEnvoyees)
+				if err != nil {
+					fmt.Println(err)
+				}
+				writer.Flush()
+
+				file.Close()
 
 			}
 		})
