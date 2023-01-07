@@ -1,4 +1,54 @@
 basePath: /
+definitions:
+  main.DayMeasurement:
+    properties:
+      HeureMesure:
+        items:
+          $ref: '#/definitions/main.HourMeasurement'
+        type: array
+      jour:
+        type: string
+    type: object
+  main.HourMeasurement:
+    properties:
+      Mesure:
+        $ref: '#/definitions/main.Measurement'
+      heure:
+        type: string
+    type: object
+  main.Measurement:
+    properties:
+      Value:
+        type: number
+      idCapteur:
+        type: string
+    type: object
+  main.MeasuresResultat:
+    properties:
+      pressions:
+        items:
+          $ref: '#/definitions/main.DayMeasurement'
+        type: array
+      temperatures:
+        items:
+          $ref: '#/definitions/main.DayMeasurement'
+        type: array
+      vitesseVents:
+        items:
+          $ref: '#/definitions/main.DayMeasurement'
+        type: array
+    type: object
+  main.Moyenne_Data_Day:
+    properties:
+      Name:
+        type: string
+      Pressure:
+        type: string
+      Temperature:
+        type: string
+      Wind_speed:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -19,16 +69,16 @@ paths:
         "200":
           description: OK
       summary: récupérer tous les aeroports
-  /api/mesure/{aeroport}/{date}:
+  /api/allMesure/{iata}/{date}:
     get:
       description: get basic
       parameters:
       - description: aeroport Name
         in: path
-        name: aeroport
+        name: iata
         required: true
         type: string
-      - description: Date AAAA-MM-JJ
+      - description: 'Start (format: YYYY-MM-DD)'
         in: path
         name: date
         required: true
@@ -36,5 +86,36 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Moyenne_Data_Day'
+            type: array
       summary: retourne la moyenne des mesures sur une journée d'un aeroport
+  /api/mesures/{iata}/{start}/{end}:
+    get:
+      parameters:
+      - description: aeroport Name
+        in: path
+        name: iata
+        required: true
+        type: string
+      - description: 'Start (format: YYYY-MM-DD-HH)'
+        in: path
+        name: start
+        required: true
+        type: string
+      - description: 'End (format: YYYY-MM-DD-HH)'
+        in: path
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.MeasuresResultat'
+            type: array
 swagger: "2.0"
