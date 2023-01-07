@@ -74,6 +74,9 @@ type Measurement struct {
 // @Success 200 {array} MeasuresResultat
 // @Router /api/mesures/{iata}/{start}/{end} [get]
 func GetMeasurements(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	vars := mux.Vars(r)
 	iata := vars["iata"]
 
@@ -173,6 +176,8 @@ type Moyenne_Data_Day struct {
 // @Router /api/allMesure/{iata}/{date} [get]
 func AllMesure(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	vars := mux.Vars(r)
 	iata := vars["iata"]
 
@@ -214,6 +219,9 @@ type Airport struct {
 // @Success 200
 // @Router /api/aeroports [get]
 func Aeroports(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	conn := pool.Get()
 	defer conn.Close()
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/00/00/00", ("55 0"))
