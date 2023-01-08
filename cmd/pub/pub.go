@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -50,6 +51,9 @@ func main() {
 				})
 
 				client.Publish(config.BrokerBaseTopicPath+"/"+iata+"/"+valueName.routeValueName, byte(config.Publisher.QoS), false, pubJson)
+
+				var idCapteur = strconv.Itoa(id + i*len(config.Publisher.ListOfIATA))
+				println("Envoyé : { natureDonnee:" + arrayOfValueName[i].jsonValueName + ", iata:" + iata + ", idCapteur:" + idCapteur + ", date:" + datetimeNow + ", valeur:" + fmt.Sprint(value) + "}")
 			}
 		}
 		time.Sleep(10 * time.Second)
