@@ -43,7 +43,6 @@ func main() {
 		client.Subscribe(topic, 0, func(client mqtt.Client, message mqtt.Message) {
 			if message != nil {
 
-				//fmt.Printf("%s", message.Payload())
 				var donnees Data1
 				err := json.Unmarshal(message.Payload(), &donnees)
 
@@ -62,12 +61,28 @@ func main() {
 				heure := date[3]
 				minute := date[4]
 				seconde := date[5]
-				route := "/" + donnees.Iata + "/" + donnees.NatureDonnee + "/" + annee + "/" + mois + "/" + jour
+				nature := ""
+
+				switch {
+				case donnees.NatureDonnee == "Temperature":
+					nature = "temperature"
+				case donnees.NatureDonnee == "Atmospheric pressure":
+					nature = "pressure"
+				case donnees.NatureDonnee == "Wind speed":
+					nature = "wind_speed"
+				}
+
+				route := "/" + donnees.Iata + "/" + nature + "/" + annee + "/" + mois + "/" + jour
 				hour := "/" + heure + "/" + minute + "/" + seconde
 				valeurEnvoyee := strconv.Itoa(donnees.IdCapteur) + " " + fmt.Sprintf("%f", donnees.Valeur)
 				conn := pool.Get()
 				defer conn.Close()
-				_, _ = conn.Do("HSET", route, hour, valeurEnvoyee)
+				_, err = conn.Do("HSET", route, hour, valeurEnvoyee)
+				if err != nil {
+					fmt.Println(err)
+					fmt.Println("erreur redis")
+					return
+				}
 
 			}
 		})
