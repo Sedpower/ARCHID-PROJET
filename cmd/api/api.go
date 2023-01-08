@@ -122,11 +122,11 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 
 func RecuperationDonneeJour(key string, start time.Time, end time.Time, t time.Time, conn redis.Conn) []HourMeasurement {
 
-	layout := "/15/04/05"
-	defer conn.Close()
 	HmeasurementTab := []HourMeasurement{}
-
+	layout := "/15/04/05"
 	fields, _ := redis.Strings(conn.Do("HGETALL", key))
+	fmt.Println(key)
+	fmt.Println(len(fields))
 
 	for i := 0; i < len(fields); i += 2 {
 
@@ -244,24 +244,17 @@ func DataTraitement(data map[string]string) float64 {
 	total := 0.0
 	somme := 0.0
 	key := ""
-	for i := 0; i < 24; i++ {
-		for u := 0; u <= 55; u = u + 5 {
-			key = "/"
-			if i < 10 {
-				key = key + "0" + strconv.Itoa(i) + "/"
-			} else {
-				key = key + strconv.Itoa(i) + "/"
+	for hour := 0; hour < 24; hour++ {
+		for minute := 0; minute <= 59; minute = minute + 1 {
+			for seconde := 0; seconde <= 59; seconde++ {
+				key = fmt.Sprintf("/%02d/%02d/%02d", hour, minute, seconde)
+				if len(data[key]) != 0 {
+					value, _ = strconv.ParseFloat(strings.Fields(data[key])[1], 64)
+					total++
+					somme = somme + value
+				}
 			}
-			if u <= 5 {
-				key = key + "0" + strconv.Itoa(u) + "/00"
-			} else {
-				key = key + strconv.Itoa(u) + "/00"
-			}
-			if len(data[key]) != 0 {
-				value, _ = strconv.ParseFloat(strings.Fields(data[key])[1], 64)
-				total++
-				somme = somme + value
-			}
+
 		}
 	}
 	return somme / total

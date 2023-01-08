@@ -69,9 +69,9 @@ xhr.onload = function() {
             if (xhr2.status === 200) {
                 const data = JSON.parse(xhr2.responseText);
                 document.getElementById('nomAero').innerHTML = `Nom de l'aéroport : ${data.Name}`;
-                document.getElementById('temp').innerHTML = `Température : ${data.Temperature}`;
-                document.getElementById('pres').innerHTML = `Pression : ${data.Pressure}`;
-                document.getElementById('wind').innerHTML = `Vitesse du vent : ${data.Wind_speed}`;
+                document.getElementById('temp').innerHTML = `Température : ${data.Temperature} °C`;
+                document.getElementById('pres').innerHTML = `Pression : ${data.Pressure} hPa`;
+                document.getElementById('wind').innerHTML = `Vitesse du vent : ${data.Wind_speed} m/h`;
                 console.log(data);
             } else {
                 console.error('Une erreur est survenue');
