@@ -129,8 +129,6 @@ func RecuperationDonneeJour(key string, start time.Time, end time.Time, t time.T
 	HmeasurementTab := []HourMeasurement{}
 	layout := "/15/04/05"
 	fields, _ := redis.Strings(conn.Do("HGETALL", key))
-	fmt.Println(key)
-	fmt.Println(len(fields))
 
 	for i := 0; i < len(fields); i += 2 {
 
@@ -145,7 +143,7 @@ func RecuperationDonneeJour(key string, start time.Time, end time.Time, t time.T
 		}
 		//si date == end heure < end
 		if t.Truncate(time.Hour*24) == end.Truncate(time.Hour*24) && dateOk {
-			if heureMesure.Hour() > start.Hour() {
+			if heureMesure.Hour() >= end.Hour() {
 				dateOk = false
 			}
 		}
