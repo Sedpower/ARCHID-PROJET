@@ -1,6 +1,10 @@
 brokerUrl: "tcp://localhost"
 brokerPort: "1883"
 brokerBaseTopicPath: "/airports"
+redisHost: "localhost"
+redisPort: "6379"
+redisProtocol: "tcp"
+
 publisher:
   clientId: "pub"
   QoS: 0
@@ -10,7 +14,5 @@ publisher:
 subscriber:
   clientId: "sub"
   QoS: 0
-  redisHost: "localhost"
-  redisPort: "6379"
-  redisProtocol: "tcp"
   topic: "/#"
+

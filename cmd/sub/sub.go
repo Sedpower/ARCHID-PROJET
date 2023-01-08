@@ -30,7 +30,7 @@ func main() {
 
 	pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", "localhost:6379")
+			return redis.Dial(config.RedisProtocol, config.RedisHost+":"+config.RedisPort)
 		},
 	}
 

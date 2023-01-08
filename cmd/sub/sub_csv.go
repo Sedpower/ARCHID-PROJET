@@ -22,8 +22,9 @@ type Data struct {
 }
 
 func main() {
-	topic := "/airports/#"
 	config := LoadConfig()
+
+	topic := config.BrokerBaseTopicPath + config.Subscriber.Topic
 
 	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub")
 

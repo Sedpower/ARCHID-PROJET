@@ -1,6 +1,7 @@
 package main
 
 import (
+	. "aeroport/internal"
 	"encoding/json"
 	"fmt"
 	redis "github.com/gomodule/redigo/redis"
@@ -27,10 +28,11 @@ var pool *redis.Pool
 // @host localhost:8080
 // @BasePath /
 func main() {
+	config := LoadConfig()
 
 	pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", "localhost:6379")
+			return redis.Dial(config.RedisProtocol, config.RedisHost+":"+config.RedisPort)
 		},
 	}
 
@@ -75,6 +77,8 @@ type Measurement struct {
 // @Router /api/mesures/{iata}/{start}/{end} [get]
 func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 
+	config := LoadConfig()
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	vars := mux.Vars(r)
@@ -86,7 +90,7 @@ func GetMeasurements(w http.ResponseWriter, r *http.Request) {
 	end, _ := time.Parse(layout, vars["end"])
 
 	// Connect to Redis
-	conn, err := redis.Dial("tcp", "localhost:6379")
+	conn, err := redis.Dial(config.RedisProtocol, config.RedisHost+":"+config.RedisPort)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -220,6 +224,8 @@ type Airport struct {
 // @Router /api/aeroports [get]
 func Aeroports(w http.ResponseWriter, r *http.Request) {
 
+	config := LoadConfig()
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	conn := pool.Get()
@@ -228,7 +234,7 @@ func Aeroports(w http.ResponseWriter, r *http.Request) {
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/00/10/00", ("55 8"))
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/10/00/00", ("55 9"))
 	_, _ = conn.Do("HSET", "/NTE/temperature/2000/01/02", "/23/55/00", ("55 4.5"))
-	ALL_Airport := []string{"NTE", "MAD", "CDG"}
+	ALL_Airport := config.Publisher.ListOfIATA
 
 	airports := []Airport{}
 

@@ -10,6 +10,9 @@ type Config struct {
 	BrokerUrl           string `yaml:"brokerUrl"`
 	BrokerPort          string `yaml:"brokerPort"`
 	BrokerBaseTopicPath string `yaml:"brokerBaseTopicPath"`
+	RedisHost           string `yaml:"redisHost"`
+	RedisPort           string `yaml:"redisPort"`
+	RedisProtocol       string `yaml:"redisProtocol"`
 	Publisher           struct {
 		ClientId   string   `yaml:"clientId"`
 		QoS        int      `yaml:"QoS"`
@@ -17,12 +20,9 @@ type Config struct {
 		ListOfIATA []string `yaml:"listOfIATA"`
 	} `yaml:"publisher"`
 	Subscriber struct {
-		ClientId      string `yaml:"clientId"`
-		QoS           int    `yaml:"QoS"`
-		RedisHost     string `yaml:"redisHost"`
-		RedisPort     string `yaml:"redisPort"`
-		RedisProtocol string `yaml:"redisProtocol"`
-		Topic         string `yaml:"topic"`
+		ClientId string `yaml:"clientId"`
+		QoS      int    `yaml:"QoS"`
+		Topic    string `yaml:"topic"`
 	} `yaml:"subscriber"`
 }
 
