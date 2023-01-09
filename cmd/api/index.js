@@ -6,6 +6,8 @@ xhr.open('GET', 'http://localhost:8080/api/aeroports');
 
 // Envoi de la requête
 xhr.send();
+var start = true
+let charts = [3];
 
 const fieldSet = document.getElementById("fieldSet")
 
@@ -52,9 +54,60 @@ xhr.onload = function() {
         document.getElementById('txtAeroportDate').innerHTML = `Moyenne des mesures pour ${value} le : `;
 
         const today = new Date();
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate()+1);
         const formattedDate = today.toISOString().slice(0, 10);
+        const formattedDateT = tomorrow.toISOString().slice(0, 10);
         calendar.value = formattedDate;
         calendar.dispatchEvent(new Event('change'));
+
+        if (start){
+        let xhr3 = new XMLHttpRequest();
+        xhr3.open('GET', `http://localhost:8080/api/mesures/${value}/${formattedDate}-00/${formattedDateT}-00`);
+        xhr3.send();
+        xhr3.onload = function() {
+          if (xhr3.status === 200) {
+            let data3 = JSON.parse(xhr3.responseText);
+            charts = displayCharts(data3)
+          }
+        start = false;
+        }
+        } else {
+          let xhr4 = new XMLHttpRequest();
+          xhr4.open('GET', `http://localhost:8080/api/mesures/${value}/${formattedDate}-00/${formattedDateT}-00`);
+          xhr4.send();
+          xhr4.onload = function() {
+            if (xhr4.status === 200) {
+              let data = JSON.parse(xhr4.responseText);
+              // Récupérer les données de pression, de température et de vitesse du vent
+              let pressureData = data.pressions[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+              let temperatureData = data.temperatures[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+              let windSpeedData = data.vitesseVents[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+
+              // Récupérer les heures de mesure
+              let hoursPrest = data.pressions[0].HeureMesure.map(h => h.heure);
+              let hoursTempt = data.temperatures[0].HeureMesure.map(h => h.heure);
+              let hoursWindt = data.vitesseVents[0].HeureMesure.map(h => h.heure);
+
+              let pressureChart = charts[0]
+              let temperatureChart = charts[1]
+              let windSpeedChart = charts[2]
+
+              pressureChart.data.datasets[0].data = pressureData
+              temperatureChart.data.datasets[0].data = temperatureData
+              windSpeedChart.data.datasets[0].data = windSpeedData
+
+              pressureChart.data.labels = hoursPrest;
+              temperatureChart.data.labels = hoursTempt;
+              windSpeedChart.data.labels = hoursWindt;
+
+              pressureChart.update();
+              temperatureChart.update();
+              windSpeedChart.update();
+            }
+          }
+          
+        }
         
     }));
 
@@ -77,16 +130,6 @@ xhr.onload = function() {
             }
         };
     });
-
-    let xhr3 = new XMLHttpRequest();
-    xhr3.open('GET', 'http://localhost:8080/api/mesures/NTE/2023-01-08-17/2023-01-08-23');
-    xhr3.send();
-    xhr3.onload = function() {
-      if (xhr3.status === 200) {
-        let data3 = JSON.parse(xhr3.responseText);
-        displayCharts(data3)
-      }
-    }
 
     const madButton = document.getElementById('NTE');
     madButton.checked = true;
@@ -186,38 +229,40 @@ const pressureChart = new Chart(document.getElementById('pressure-chart'), press
 const temperatureChart = new Chart(document.getElementById('temperature-chart'), temperatureOptions);
 const windSpeedChart = new Chart(document.getElementById('wind-speed-chart'), windSpeedOptions);
 
-// Mettre à jour les graphiques toutes les 10 secondes
-let refreshIntervalId = setInterval(async function() {
-  // Récupérer les nouvelles données de mesure météorologique de l'API
-  const response = await fetch(`http://localhost:8080/api/mesures/NTE/2023-01-08-15/2023-01-08-21`);
-  const data = await response.json();
+return [pressureChart,temperatureChart,windSpeedChart]
 
-  // Récupérer les données de pression, de température et de vitesse du vent
-  let pressureData = data.pressions[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
-  let temperatureData = data.temperatures[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
-  let windSpeedData = data.vitesseVents[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+// // Mettre à jour les graphiques toutes les 10 secondes
+// let refreshIntervalId = setInterval(async function() {
+//   // Récupérer les nouvelles données de mesure météorologique de l'API
+//   const response = await fetch(`http://localhost:8080/api/mesures/NTE/2023-01-08-15/2023-01-08-21`);
+//   const data = await response.json();
 
-  // Récupérer les heures de mesure
-  let hoursPrest = data.pressions[0].HeureMesure.map(h => h.heure);
-  let hoursTempt = data.temperatures[0].HeureMesure.map(h => h.heure);
-  let hoursWindt = data.vitesseVents[0].HeureMesure.map(h => h.heure);
+//   // Récupérer les données de pression, de température et de vitesse du vent
+//   let pressureData = data.pressions[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+//   let temperatureData = data.temperatures[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
+//   let windSpeedData = data.vitesseVents[0].HeureMesure.sort((a,b) => a.heure.localeCompare(b.heure)).map(h => h.Mesure.Value)
 
-  pressureChart.data.datasets[0].data = pressureData
-  temperatureChart.data.datasets[0].data = temperatureData
-  windSpeedChart.data.datasets[0].data = windSpeedData
+//   // Récupérer les heures de mesure
+//   let hoursPrest = data.pressions[0].HeureMesure.map(h => h.heure);
+//   let hoursTempt = data.temperatures[0].HeureMesure.map(h => h.heure);
+//   let hoursWindt = data.vitesseVents[0].HeureMesure.map(h => h.heure);
 
-  pressureChart.data.labels = hoursPrest;
-  temperatureChart.data.labels = hoursTempt;
-  windSpeedChart.data.labels = hoursWindt;
+//   pressureChart.data.datasets[0].data = pressureData
+//   temperatureChart.data.datasets[0].data = temperatureData
+//   windSpeedChart.data.datasets[0].data = windSpeedData
 
-  pressureChart.update();
-  temperatureChart.update();
-  windSpeedChart.update();
-}, 10000);
+//   pressureChart.data.labels = hoursPrest;
+//   temperatureChart.data.labels = hoursTempt;
+//   windSpeedChart.data.labels = hoursWindt;
 
-function stopRefresh() {
-  clearInterval(refreshIntervalId);
-}
+//   pressureChart.update();
+//   temperatureChart.update();
+//   windSpeedChart.update();
+// }, 10000);
+
+// function stopRefresh() {
+//   clearInterval(refreshIntervalId);
+// }
 
 }
 
