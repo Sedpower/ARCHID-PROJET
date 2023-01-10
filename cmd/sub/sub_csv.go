@@ -26,7 +26,7 @@ func main() {
 
 	topic := config.BrokerBaseTopicPath + config.Subscriber.Topic
 
-	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub")
+	client := Connect(config.BrokerUrl+":"+config.BrokerPort, "sub_csv")
 
 	// nombre de fonctions asynchrones (exe en parralelle)
 	// waitgroup add, ajout. Stocke 2, deux coroutines en cours.
@@ -37,7 +37,6 @@ func main() {
 		client.Subscribe(topic, 0, func(client mqtt.Client, message mqtt.Message) {
 			if message != nil {
 
-				//fmt.Printf("%s", message.Payload())
 				var donnees Data
 				err := json.Unmarshal(message.Payload(), &donnees)
 
@@ -53,7 +52,6 @@ func main() {
 				annee := date[0]
 				mois := date[1]
 				jour := date[2]
-				fmt.Println(jour)
 				var nature string
 
 				switch {
@@ -64,8 +62,7 @@ func main() {
 				case donnees.NatureDonnee == "Wind speed":
 					nature = "Wind"
 				}
-				nomFichier := "./cmd/sub/Donnees/" + donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
-				fmt.Println(nomFichier)
+				nomFichier := "./build/Donnees/" + donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
 
 				if _, err := os.Stat(nomFichier); os.IsNotExist(err) {
 					file, err := os.Create(nomFichier)
