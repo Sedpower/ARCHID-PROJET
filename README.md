@@ -88,7 +88,7 @@ Il est bien sûr tout à fait possible d'ajouter des aéroports à sa guise, il 
 
 > Moyenne mesure pour les MESURE pour un aeroport
 >
-> `GET http://localhost:8080/api/allMesure/NTE/`
+> `GET http://localhost:8080/api/allMesure/NTE/2023-01-10`
 > ```json
 > {
 >     "Name": String, // Correspond à l'IATA
