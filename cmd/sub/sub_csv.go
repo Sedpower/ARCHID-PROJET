@@ -62,7 +62,7 @@ func main() {
 				case donnees.NatureDonnee == "Wind speed":
 					nature = "Wind"
 				}
-				nomFichier := "./build/Donnees/" + donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
+				nomFichier := "./Donnees/" + donnees.Iata + "-" + annee + "-" + mois + "-" + jour + "-" + nature + ".csv"
 
 				if _, err := os.Stat(nomFichier); os.IsNotExist(err) {
 					file, err := os.Create(nomFichier)
